@@ -1,0 +1,351 @@
+Option Explicit
+
+Sub CalculateForceEnvelopes()
+
+' this functions generate analysis sections along the beam
+' and returns the number of generated sections
+
+
+Dim Nspans%, Nsections%, SpanLength#, SumSpans#
+Dim i%, j%, k%, iloc%, iglob%, ispan%
+Dim a
+Dim Sections() As Double
+Dim rngMmax As Range, rngMmin As Range, rngVmax As Range, rngVmin As Range
+
+a = Timer
+
+Set rngMmax = Range("Mmax_truck").Offset(5, 0)
+Set rngMmin = rngMmax.Offset(1, 0)
+Set rngVmax = rngMmax.Offset(0, 2)
+Set rngVmin = rngVmax.Offset(1, 0)
+
+Application.ScreenUpdating = False
+
+Nspans = Range("Nspans")
+Nsections = Range("Nsections")
+
+Range("Envelopes_X1").Resize(1000, 7).ClearContents
+
+
+
+ReDim Sections(1 To (Nsections + 1) * Nspans, 1 To 7)
+' 1 - x global
+' 2 - span No.
+' 3 - x local
+' 4 - moment max
+' 5 - moment min
+' 6 - shear max
+' 7 - shear min
+
+If ActiveSheet.Name <> "Input" Then wsInput.Activate
+
+
+SpanLength = 0
+
+For ispan = 1 To Nspans
+    SumSpans = SumSpans + SpanLength
+    SpanLength = Range("L")(1, ispan)
+    For iloc = 1 To Nsections + 1
+        iglob = iglob + 1
+        Sections(iglob, 2) = ispan
+        If iloc <= Nsections Then
+            Sections(iglob, 3) = SpanLength / Nsections * (iloc - 1)
+        Else
+            Sections(iglob, 3) = SpanLength - IIf(ispan = Nspans, 0, SMALL)
+        End If
+        Sections(iglob, 1) = Sections(iglob, 3) + SumSpans
+    Next iloc
+Next ispan
+  
+For i = 1 To iglob
+    Range("span_input") = Sections(i, 2)
+    Range("section_input") = Sections(i, 3)
+    getLine
+    Find_maximum_truck_forces
+    Application.CalculateFull
+    With WorksheetFunction
+        Sections(i, 4) = .Max(0, rngMmax)
+        Sections(i, 5) = .Min(0, rngMmin)
+        Sections(i, 6) = .Max(0, rngVmax)
+        Sections(i, 7) = .Min(0, rngVmin)
+    End With
+Next i
+
+Range("Envelopes_x1").Resize(iglob, 7) = Sections
+
+
+wsEnvelopes.Activate
+
+With wsEnvelopes.ChartObjects("Chart 1").Chart.Axes(xlCategory)
+    .MinimumScale = 0
+    .MaximumScale = Range("Envelopes_x")(Range("Envelopes_x").Cells.Count)
+End With
+
+Debug.Print "Total time: "; Timer - a & " seconds"
+
+End Sub
+
+
+ Option Explicit
+ 
+ Public Const SMALL As Double = 0.00001
+
+Function GenerateSections() As Integer
+
+' this functions generate analysis sections along the beam
+' and returns the number of generated sections
+
+
+Dim Nspans%, Nsections%, Length#, SectionX#
+Dim i%, j%, k%, iloc%, iglob%
+Dim a#, B#
+Dim rngXloc As Range, rngXGlob As Range
+
+Dim Xloc()  As Double
+Dim Xglob() As Double
+
+ReDim Xloc(1 To 3100)
+ReDim Xglob(1 To 3100)
+
+Set rngXloc = Range("XLoc1")
+
+' Clean
+rngXloc.Offset(1, -2).Resize(1000, 5).ClearContents
+
+Nspans = Range("Nspans")
+Nsections = Range("Nsections")
+SectionX = Range("SectionX")
+
+For i = 1 To Nspans
+    Length = Range("L")(1, i)
+    iloc = iloc + 1
+    Xloc(iloc) = 0
+  
+    If i <> Range("SectionSpan").Value Then
+         
+        Do
+            iloc = iloc + 1
+            Xloc(iloc) = Xloc(iloc - 1) + Length / Nsections
+     
+        Loop Until Abs(Xloc(iloc) - Length) < SMALL
+        Xloc(iloc) = Length
+        
+    Else  ' Request section is in this span
+        Do
+            iloc = iloc + 1
+            a = Xloc(iloc - 1) + Length / Nsections
+            Select Case a - SectionX
+                Case Is < -SMALL
+                    Xloc(iloc) = a
+                Case Length / Nsections
+                    If SectionX = 0 Then
+                        Xloc(iloc) = SMALL
+                        iloc = iloc + 1
+                    End If
+                    Xloc(iloc) = a
+                Case Is > Length / Nsections
+                    Xloc(iloc) = a
+                Case Is < Length / Nsections
+                    Xloc(iloc) = SectionX
+                    If SectionX = Length Then Exit Do
+                    iloc = iloc + 1
+                    Xloc(iloc) = SectionX + SMALL
+                    
+                    If Length <= a + Length / Nsections Then a = Length Else a = a + Length / Nsections
+           
+                    iloc = iloc + 1
+                    Xloc(iloc) = a
+                    
+                End Select
+        Loop While Length - a > SMALL * 0.1
+    End If
+Next i
+
+ReDim Preserve Xloc(1 To iloc)
+Range("Xloc1").Offset(1, 0).Resize(iloc, 1) = WorksheetFunction.Transpose(Xloc)
+
+
+'fillout X-global
+
+Set rngXGlob = Range("XLoc1").Offset(1, -2).Resize(iloc, 1)
+
+i = 0
+j = 1
+
+Length = 0
+
+For j = 1 To iloc
+    If Xloc(j) = 0 Then
+        i = i + 1
+        Range("XLoc1").Offset(j, -1) = i
+        If j = 1 Then Length = 0 Else Length = Xglob(j - 1)
+    End If
+    Xglob(j) = Xloc(j) + Length
+Next j
+
+ReDim Preserve Xglob(1 To iloc)
+rngXGlob = WorksheetFunction.Transpose(Xglob)
+
+With wsInput.ChartObjects("Chart 7").Chart.Axes(xlCategory)
+    .MinimumScale = 0
+    .MaximumScale = Xglob(iloc)
+End With
+
+GenerateSections = iloc 'returns number of rows
+    
+End Function
+
+
+
+Sub getLine()
+
+Dim rngXloc As Range, rngSpan As Range, rngX As Range
+Dim MomentShear() As Double
+Dim Nrows As Integer, i%, j%
+Dim a
+
+Application.ScreenUpdating = False
+
+Set rngXloc = Range("X_local")
+Set rngX = Range("LoadX")
+Set rngSpan = Range("LoadSpan")
+
+'wsInput.Unprotect
+
+Nrows = GenerateSections()
+    
+ReDim MomentShear(1 To Nrows, 1 To 2)
+    
+i = 0
+For j = 1 To Nrows
+    If rngXloc(j) = 0 Then
+        i = i + 1
+        rngSpan.Value = i
+    End If
+    rngX.Value = rngXloc(j)
+    MomentShear(j, 1) = Range("Moment").Value
+    MomentShear(j, 2) = Range("Shear").Value
+Next j
+    
+rngXloc.Offset(0, 1).Resize(Nrows, 2) = MomentShear
+
+
+wsInput.ChartObjects("Chart 7").Chart.ChartTitle.Text = _
+"Influence line at section " & Range("SectionX") & " of Span No. " & Range("SectionSpan")
+
+'Application.ScreenUpdating = True
+'wsInput.Protect
+End Sub
+
+
+Public Function PosNegArea(rngX As Range, rngY As Range) As Variant
+
+Dim MaxArea#, MinArea#
+Dim i%, j%
+Dim a#, D#, x1#, x2#, y1#, y2#
+'
+
+x1 = rngX(1)
+MinArea = 0
+MaxArea = 0
+'
+With Application.WorksheetFunction
+For i = 1 To rngX.Cells.Count - 1
+    x1 = rngX(i)
+    x2 = rngX(i + 1)
+    y1 = rngY(i)
+    y2 = rngY(i + 1)
+    If x2 - x1 > SMALL Then
+        If y1 * y2 >= 0 Then
+            a = (x2 - x1) * (y1 + y2) / 2
+            MaxArea = MaxArea + .Max(a, 0)
+            MinArea = MinArea + .Min(a, 0)
+        Else
+            D = y1 / (y1 - y2) * (x2 - x1) ' Distance from X1 to where Y(1) = 0'
+            If D <= x2 - x1 Then
+                MaxArea = 0.5 * .Max(y1 * D, y2 * (x2 - x1 - D)) + MaxArea
+                MinArea = 0.5 * .Min(y1 * D, y2 * (x2 - x1 - D)) + MinArea
+            End If
+        End If
+    End If
+Next i
+
+PosNegArea = .Transpose(Array(MaxArea, MinArea))
+End With
+
+End Function
+
+Public Function INTERPOL1(x, Xrng, Yrng) As Double
+
+Dim x1#, x2#, y1#, y2#, n%
+
+With WorksheetFunction
+
+If x < .Min(Xrng) Or x > .Max(Xrng) Then
+    INTERPOL1 = 0
+Else
+    n = .Match(x, Xrng, 1)
+    x1 = .Index(Xrng, n)
+    y1 = .Index(Yrng, n)
+    If n = Xrng.Cells.Count Then
+        INTERPOL1 = y1
+    Else
+        x2 = .Index(Xrng, n + 1)
+        y2 = .Index(Yrng, n + 1)
+        INTERPOL1 = y1 + (x - x1) * (y2 - y1) / (x2 - x1)
+    End If
+End If
+
+End With
+
+End Function
+
+
+Sub Find_maximum_truck_forces()
+
+Dim rngX As Range, rng1 As Range
+Set rngX = Range("X_axle1")
+Set rng1 = Range("Mmax_truck")
+
+Application.ScreenUpdating = Range("bAnimation")
+Application.ScreenUpdating = False
+
+
+' clean up
+rng1.Resize(2, 4).ClearContents
+
+
+' find maximum moment
+    Range("X_axle1").Value = Range("J17").Value + Range("Truck_length") / 2
+    SolverOk SetCell:=Range("Moment_Truck"), MaxMinVal:=1, ByChange:=Range("X_axle1")
+    solversolve userfinish:=True
+    rng1.Offset(0, 0) = Range("Moment_truck").Value
+    rng1.Offset(0, 1) = rngX.Value
+Application.ScreenUpdating = Range("bAnimation")
+Application.ScreenUpdating = False
+' find minimum moment
+    Range("X_axle1").Value = Range("J18").Value + Range("Truck_length") / 2
+    SolverOk SetCell:=Range("Moment_Truck"), MaxMinVal:=2, ByChange:=Range("X_axle1")
+    solversolve userfinish:=True
+    rng1.Offset(1, 0) = Range("Moment_truck").Value
+    rng1.Offset(1, 1) = rngX.Value
+Application.ScreenUpdating = Range("bAnimation")
+Application.ScreenUpdating = False
+' find maximum shear
+    Range("X_axle1").Value = Range("L17").Value + Range("Truck_length")
+    SolverOk SetCell:=Range("Shear_Truck"), MaxMinVal:=1, ByChange:=Range("X_axle1")
+    solversolve userfinish:=True
+    rng1.Offset(0, 2) = Range("Shear_truck ").Value
+    rng1.Offset(0, 3) = rngX.Value
+Application.ScreenUpdating = Range("bAnimation")
+Application.ScreenUpdating = False
+' find minimum shear
+    Range("X_axle1").Value = Range("L18").Value
+    SolverOk SetCell:=Range("Shear_Truck"), MaxMinVal:=2, ByChange:=Range("X_axle1")
+    solversolve userfinish:=True
+    rng1.Offset(1, 2) = Range("Shear_truck ").Value
+    rng1.Offset(1, 3) = rngX.Value
+   
+End Sub
+
+
