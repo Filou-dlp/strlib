@@ -1,5 +1,3 @@
 # Structural lib
 
-This is a simple example package. You can use
-[Github-flavored Markdown](not implented yet)
-to write your content.
+This package is destinate mainly for structural engineer, it has everything to make calculation in python application
