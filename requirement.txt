@@ -1,0 +1,8 @@
+# To install all librairy for the package
+# pip install -r requirement.txt
+
+numpy
+sympy
+python-docx
+xlwings
+mpmath
