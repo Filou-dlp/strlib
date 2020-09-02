@@ -114,8 +114,8 @@ class MatConcrete(Material):
             self.fctk_005 = self.fctm * 0.7
             self.fctk_095 = self.fctm * 1.3
             self.epsilon_cu1 = 2.8 + 27 * ((98 - self.fcm) / 100)**4
-            self.epsilon_c2 = 2.2 + 0.085 * (self.__fck - 50)**0.53
-            self.epsilon_cu2 = 2.6 + 35 * ((90 - self.__fck) / 100)**0.4
+            self.epsilon_c2 = 2 + 0.085 * (self.__fck - 50)**0.53
+            self.epsilon_cu2 = 2.6 + 35 * ((90 - self.__fck) / 100)**4
             self.n = 1.4 + 23.4 * ((90 - self.__fck) / 100)**4
             self.epsilon_c3 = 1.75 + 0.55 * (self.__fck - 50) / 40
             self.epsilon_cu3 = 2.6 + 35 * ((90 - self.__fck) / 100)**4

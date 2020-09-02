@@ -170,4 +170,19 @@ class IntertiaTRect:
         self.inertia_crack = first + second + third
 
 if __name__ == "__main__":
-    pass
+    bw = 20
+    beff = 100
+    h = 40
+    hf = 0.2
+    alpha_eq = 15
+    d = 0.9 * h
+    ast = 10 * 10**-4
+    d_p = 0.1 * h
+    asc =  5 * 10**-4
+ 
+    test = IntertiaTRect(bw, beff, h, hf, alpha_eq, d, ast, d_p, asc)
+    test.make_calculation()
+    print("xh: ", test.x_homogenous)
+    print("Ih: ", test.inertia_homogenous)
+    print("xc: ", test.x_crack)
+    print("Ic: ", test.inertia_crack)

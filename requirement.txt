@@ -1,6 +1,8 @@
 # To install all librairy for the package
 # pip install -r requirement.txt
 
+# setuptools, wheel (install the file)
+
 numpy
 sympy
 python-docx

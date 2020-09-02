@@ -25,81 +25,82 @@ class FullSection: # Full section
     def __init__(self, point):
         """ Constructor """
         
-        self.__Point = point
+        self.__point = point
         
         self.__coords = []
-        for i,ii in self.__Point:
+        for i, ii in self.__point:
             self.__X = i
             self.__Y = ii
-            self.__coords.append((self.__X,self.__Y))
-        self.__define_Area()   
-        self.__define_Sox()
-        self.__define_Soy()
-        self.__define_Inertia_ox()
-        self.__define_Inertia_oy()
-        self.__define_Inertia_oyz()
+            self.__coords.append((self.__X, self.__Y))
+        self.__define_area()   
+        self.__define_sox()
+        self.__define_soy()
+        self.__define_inertia_ox()
+        self.__define_inertia_oy()
+        self.__define_inertia_oyz()
     
     def __Length(self):
         pass
+        self.length = None
     
-    def __define_Area(self): # Correct
-        self.__Area = 0
-        self.__Area_pt = []
+    def __define_area(self): # Correct
+        self.area = 0
+        self.__area_pt = []
         for count in range(len(self.__coords)-1):
             y = self.__coords[count][0] * self.__coords[count+1][1]
             x = self.__coords[count+1][0] * self.__coords[count][1]
             z = y - x
-            self.__Area_pt.append(abs(z/2))
-            self.__Area += z
-        self.__Area = abs(self.__Area/2.0)
+            self.__area_pt.append(abs(z / 2))
+            self.area += z
+        self.area = abs(self.area / 2.0)
 
-    def __define_Sox(self): # Correct
-        self.__Sox = 0
-        self.__Sox_pt = []
+    def __define_sox(self): # Correct
+        self.sox = 0
+        self.__sox_pt = []
         for count in range(len(self.__coords)-1):
-            z = self.__Area_pt[count]*(self.__coords[count][1]+self.__coords[count+1][1])/3
-            self.__Sox_pt.append(z)
-            self.__Sox += z  
+            z = self.__area_pt[count] * (self.__coords[count][1]+self.__coords[count+1][1])/3
+            self.__sox_pt.append(z)
+            self.sox += z  
         
-    def __define_Soy(self): # Correct
-        self.__Soy = 0
-        self.__Soy_pt = []
+    def __define_soy(self): # Correct
+        self.soy = 0
+        self.__soy_pt = []
         for count in range(len(self.__coords)-1):
-            z = self.__Area_pt[count]*(self.__coords[count][0]+self.__coords[count+1][0])/3
-            self.__Soy_pt.append(z)
-            self.__Soy += z   
+            z = self.__area_pt[count]*(self.__coords[count][0]+self.__coords[count+1][0])/3
+            self.__soy_pt.append(z)
+            self.soy += z   
 
-    def __define_Inertia_ox(self): # Correct
-        self.__Iox = 0
-        self.__Iox_pt = []
+    def __define_inertia_ox(self): # Correct
+        self.iox = 0
+        self.__iox_pt = []
         for count in range(len(self.__coords)-1):
             y1 = self.__coords[count][1]
             y2 = self.__coords[count+1][1]
-            z = self.__Area_pt[count]*(y1**2 + y1*y2 + y2**2)/6
-            self.__Iox_pt = z
-            self.__Iox += z
+            z = self.__area_pt[count]*(y1**2 + y1*y2 + y2**2)/6
+            self.__iox_pt = z
+            self.iox += z
 
-    def __define_Inertia_oy(self): # Correct
-        self.__Ioy = 0
-        self.__Ioy_pt = []
+    def __define_inertia_oy(self): # Correct
+        self.ioy = 0
+        self.__ioy_pt = []
         for count in range(len(self.__coords)-1):
             x1 = self.__coords[count][0]
             x2 = self.__coords[count+1][0]
-            z = self.__Area_pt[count]*(x1**2 + x1*x2 + x2**2)/6
-            self.__Ioy_pt = z
-            self.__Ioy += z
+            z = self.__area_pt[count]*(x1**2 + x1*x2 + x2**2)/6
+            self.__ioy_pt = z
+            self.ioy += z
 
-    def __define_Inertia_oyz(self): # Correct
-        self.__Ioxy = 0
-        self.__Ioxy_pt = []
+    def __define_inertia_oyz(self): # Correct
+        self.ioxy = 0
+        self.__ioxy_pt = []
         for count in range(len(self.__coords)-1):
             x1 = self.__coords[count][0]
             x2 = self.__coords[count+1][0]
             y1 = self.__coords[count][1]
             y2 = self.__coords[count+1][1] 
-            z = self.__Area_pt[count]*(x1*y1 + y2*x2 + (x2*y1+x1*y2)/2)/6
-            self.__Ioxy_pt = z
-            self.__Ioxy += z
+            z = self.__area_pt[count]*(x1*y1 + y2*x2 + (x2*y1+x1*y2)/2)/6
+            self.__ioxy_pt = z
+            self.ioxy += z
             
     def __define_Gravity_center(self):
         pass   
@@ -108,31 +109,7 @@ class FullSection: # Full section
     def __define_Inertia_principal_y(self):
         pass
     def __define_Inertia_principal_yz(self):
-        pass      
- # Set
-    def __set_(self):
         pass
-
- # Get
-    def __get_Area(self):
-        return self.__Area
-    def __get_Sox(self):
-        return self.__Sox
-    def __get_Soy(self):
-        return self.__Soy
-    def __get_Iox(self):
-        return self.__Iox
-    def __get_Ioy(self):
-        return self.__Ioy
-    def __get_Ioxy(self):
-        return self.__Ioxy
-
-    Area = property(__get_Area)
-    Sox = property(__get_Sox)
-    Soy = property(__get_Soy)
-    Iox = property(__get_Iox)
-    Ioy = property(__get_Ioy)
-    Ioxy = property(__get_Ioxy)
 
 
 class Rect(RC, Steel, Mixte, Timber):
@@ -194,13 +171,13 @@ class Rect(RC, Steel, Mixte, Timber):
 
  # SET
     @b.setter
-    def b(self,val):
+    def b(self, val):
         """ redefine value when change b """
         self.__b = val
         self.__define_value()
         self._define_value()
     @h.setter
-    def h(self,val):
+    def h(self, val):
         """ redefine value when change h """
         self._h = val
         self.__define_value()
@@ -310,9 +287,9 @@ if __name__ == "__main__":
     point = (P1,P2,P3,P4)
     a = FullSection(point)
     
-    print(a.Area)
-    print(a.Sox)
-    print(a.Soy)
-    print(a.Iox)
-    print(a.Ioy)
-    print(a.Ioxy)
+    print(a.area)
+    print(a.sox)
+    print(a.soy)
+    print(a.iox)
+    print(a.ioy)
+    print(a.ioxy)
