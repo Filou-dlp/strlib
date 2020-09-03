@@ -9,8 +9,8 @@ import math
 
 import mpmath
 
-from shear.vrdc import vrdc
-from shear.theta import theta
+from shear_det.vrdc import vrdc
+from shear_det.theta import theta
 
 # sys.path.append(sys.path[0]+'/../Office_lib')
 # import TWord

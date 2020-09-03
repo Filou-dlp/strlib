@@ -1,11 +1,11 @@
- 
-#!/usr/bin/env python
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
     Module docstring
 """
 from math import pi
+
 
 class CalcDDp:
     """
@@ -18,7 +18,7 @@ class CalcDDp:
         """
         self.zg_ast = self.__define_zg(ast, c_nom, phy_t, ev)
         self.d = h - self.zg_ast
-        if asc !=0:
+        if asc != 0:
             self.zg_asc = self.__define_zg(asc, c_nom, phy_t, ev)
             self.d_p = self.zg_asc
 
@@ -38,7 +38,7 @@ class CalcDDp:
                 self.__z.append(tmp)
                 counter += 1
 
-    def __define_zg(self, steel, c_nom, phy_t, ev):
+    def __define_zg(self, steel, c_nom, phy_t: float, ev: float) -> float:
         """ """
         self.__define_z_steel(steel, c_nom, phy_t, ev)
         sy = 0
@@ -46,13 +46,13 @@ class CalcDDp:
         if isinstance(steel, (int, float)):
             area = self.calc_section(steel)
             sy += area * self.__z
-            s += area 
+            s += area
         else:
             max_ = len(steel)
             for i in range(0, max_):
                 area = self.calc_section(steel[i])
                 sy += area * self.__z[i]
-                s += area 
+                s += area
 
         zg = sy / s
         return zg
@@ -61,6 +61,7 @@ class CalcDDp:
     def calc_section(phy):
         """ """
         return phy**2 * pi / 4
+
 
 if __name__ == "__main__":
     ast = (16, 16, 16, 16)

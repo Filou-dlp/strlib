@@ -84,7 +84,7 @@ class ReinforcedConcrete:
                 - RL -> Ronds lisse
         """
         self._steel_kind = "HA"
-# GET
+    # GET
     @property
     def d(self):
         """ d getter """
@@ -97,17 +97,19 @@ class ReinforcedConcrete:
     def steel_kind(self):
         return self._steel_kind
 
-# SET
+    # SET
     @d.setter
     def d(self, val):
         """ redefine value when changing d """
         self._d = val
         self._define_value()
+
     @d_p.setter
     def d_p(self, val):
         """ redefinie value when changing d_p """
         self._d_p = val
         self._define_value()
+
     @steel_kind.setter
     def steel_kind(self, val):
         self._steel_kind = val
